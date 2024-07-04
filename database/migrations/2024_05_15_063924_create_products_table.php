@@ -12,9 +12,9 @@ class CreateProductsTable extends Migration
             $table->id();
             $table->string('name');
             $table->text('description')->nullable();
-            $table->decimal('price', 8, 2);
+            $table->integer('price');
             $table->integer('stock');
-            $table->string('photo')->nullable(); // Menyimpan path foto
+            $table->string('photo')->nullable();
             $table->timestamps();
         });
     }

@@ -15,14 +15,11 @@ class ProductController extends Controller
     }
     public function show($id)
     {
-        dd($id);
-
         $product = Product::findorFail($id);
         return view('products.show', compact('product'));
     }
     public function create()
     {
-        \Log::info('Metode create dipanggil');
         return view('products.create');
     }    
     public function store(Request $request)
@@ -37,16 +34,59 @@ class ProductController extends Controller
 
         $imagePath = $request->file('photo')->store('product_photos', 'public');
 
-        $product = new Product([
-            'name' => $request->input('name'),
-            'price' => $request->input('price'),
-            'stock' => $request->input('stock'),
-            'description' => $request->input('description'),
-            'photo' => $imagePath,
-        ]);
+        $product = new Product();
+        $product->name = $request->name;
+        $product->price = $request->price;
+        $product->stock = $request->stock;
+        $product->description = $request->description;
 
+        if ($request->hasFile('photo')) {
+            $image = $request->file('photo');
+            $fileName = time() . '.' . $image->getClientOriginalExtension();
+            $image->storeAs('public', $fileName);
+            $product->photo = $fileName;
+        }
+        
         $product->save();
 
         return redirect()->route('products.index')->with('success', 'Produk berhasil ditambahkan!');
+    }
+    public function edit($id)
+    {
+        $product = Product::findOrFail($id);
+        return view('products.edit', compact('product'));
+    }
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'name' => 'required',
+            'price' => 'required|numeric',
+            'stock' => 'required|numeric',
+            'description' => 'required',
+            'photo' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        $product = Product::findOrFail($id);
+        $product->name = $request->name;
+        $product->price = $request->price;
+        $product->stock = $request->stock;
+        $product->description = $request->description;
+
+        if ($request->hasFile('photo')) {
+            $image = $request->file('photo');
+            $fileName = time() . '.' . $image->getClientOriginalExtension();
+            $image->storeAs('public', $fileName);
+            $product->photo = $fileName;
+        }
+
+        $product->save();
+
+        return redirect()->route('products.index')->with('success', 'Product updated successfully.'); 
+    }
+    public function destroy($id) {
+        $product = Product::findOrFail($id);
+        $product->delete();
+
+        return redirect()->route('products.index')->with('success', 'Product deleted successfully!');
     }
 }
